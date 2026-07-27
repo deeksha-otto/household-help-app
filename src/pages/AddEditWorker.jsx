@@ -35,6 +35,7 @@ const DEFAULT_FORM = {
   role: 'maid',
   custom_role_label: '',
   monthly_salary: '',
+  worker_email: '',
   attendance_frequency: 'daily',
   weekly_off_day: 'Sunday',
   scheduled_days: [],
@@ -61,6 +62,7 @@ export default function AddEditWorker() {
         role: data.role,
         custom_role_label: data.custom_role_label || '',
         monthly_salary: String(data.monthly_salary),
+        worker_email: data.worker_email || '',
         attendance_frequency: data.attendance_frequency || 'daily',
         weekly_off_day: data.weekly_off_day || 'Sunday',
         scheduled_days: data.scheduled_days || [],
@@ -103,8 +105,9 @@ export default function AddEditWorker() {
       role: form.role,
       custom_role_label: form.role === 'custom' ? form.custom_role_label.trim() : null,
       monthly_salary: Number(form.monthly_salary),
+      worker_email: form.worker_email.trim().toLowerCase() || null,
       attendance_frequency: form.attendance_frequency,
-      weekly_off_day:       form.weekly_off_day,  // always non-null; only used in salary calc for daily workers
+      weekly_off_day:       form.weekly_off_day,
       scheduled_days:       form.attendance_frequency === 'specific_days'  ? form.scheduled_days       : null,
       alternate_start_date: form.attendance_frequency === 'alternate_days' ? form.alternate_start_date : null,
       allowed_paid_leaves: Number(form.allowed_paid_leaves) || 0,
@@ -158,17 +161,31 @@ export default function AddEditWorker() {
           </div>
         )}
 
-        {/* Name */}
-        <div className="bg-white rounded-2xl shadow-sm p-5">
-          <label className="section-label block mb-3">Worker Name</label>
-          <input
-            type="text"
-            value={form.name}
-            onChange={e => update('name', e.target.value)}
-            className="input-field text-lg font-semibold"
-            placeholder="e.g. Sunita Devi"
-            required
-          />
+        {/* Name + email */}
+        <div className="bg-white rounded-2xl shadow-sm p-5 space-y-4">
+          <div>
+            <label className="section-label block mb-3">Worker Name</label>
+            <input
+              type="text"
+              value={form.name}
+              onChange={e => update('name', e.target.value)}
+              className="input-field text-lg font-semibold"
+              placeholder="e.g. Sunita Devi"
+              required
+            />
+          </div>
+          <div>
+            <label className="section-label block mb-2">Worker Email <span className="normal-case font-normal text-stone-300">(for employee login)</span></label>
+            <input
+              type="email"
+              value={form.worker_email}
+              onChange={e => update('worker_email', e.target.value)}
+              className="input-field"
+              placeholder="e.g. sunita@gmail.com"
+              autoComplete="off"
+            />
+            <p className="text-xs text-stone-400 mt-1.5">If the worker signs in with this email, they can submit their own attendance for your approval.</p>
+          </div>
         </div>
 
         {/* Role grid */}

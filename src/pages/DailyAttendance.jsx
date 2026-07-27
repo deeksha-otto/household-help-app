@@ -68,7 +68,7 @@ export default function DailyAttendance() {
     setSaving(status)
     const { error } = await supabase
       .from('attendance')
-      .upsert({ worker_id: worker.id, date, status }, { onConflict: 'worker_id,date' })
+      .upsert({ worker_id: worker.id, date, status, submitted_by: 'employer', approval_status: 'approved' }, { onConflict: 'worker_id,date' })
     if (!error) {
       await loadData(false)
       if (date === today) {
@@ -93,8 +93,24 @@ export default function DailyAttendance() {
     return <div className="flex items-center justify-center py-24 text-stone-400">Loading…</div>
   }
 
-  const todayStatus = todayDay?.status ?? null
-  const todayMeta   = todayStatus ? STATUS_META[todayStatus] : null
+  const todayStatus         = todayDay?.status ?? null
+  const todayApprovalStatus = todayDay?.approval_status ?? null
+  const todayMeta           = todayStatus ? STATUS_META[todayStatus] : null
+
+  async function approvePending() {
+    setSaving('approving')
+    await supabase.from('attendance').update({ approval_status: 'approved' }).eq('id', todayDay.id)
+    await loadData(false)
+    setJustMarked(todayDay.status)
+    setTimeout(() => setJustMarked(null), 1800)
+    setSaving(null)
+  }
+  async function rejectPending() {
+    setSaving('rejecting')
+    await supabase.from('attendance').update({ approval_status: 'rejected' }).eq('id', todayDay.id)
+    await loadData(false)
+    setSaving(null)
+  }
 
   // ── Paid-leave warning overlay ────────────────────────────────────────────
   if (showPaidLeaveWarning) {
@@ -147,8 +163,39 @@ export default function DailyAttendance() {
         </div>
 
         <div className="p-4">
-          {/* Not scheduled — specific_days or alternate_days workers on their off days */}
-          {!todayIsScheduled ? (
+          {/* Employee submitted — awaiting employer approval */}
+          {todayApprovalStatus === 'pending' && justMarked === null ? (
+            <div>
+              <div className="bg-amber-50 border-2 border-amber-200 rounded-2xl p-5">
+                <p className="text-xs font-semibold text-amber-600 uppercase tracking-wider mb-1">Employee submitted</p>
+                <div className="flex items-center gap-3 mt-2">
+                  <span className="text-3xl">{ATT_BUTTONS.find(b => b.status === todayStatus)?.icon}</span>
+                  <div>
+                    <p className="text-lg font-bold text-amber-800">{todayMeta?.label}</p>
+                    <p className="text-sm text-amber-600">Awaiting your approval</p>
+                  </div>
+                </div>
+              </div>
+              <div className="flex gap-3 mt-3">
+                <button
+                  onClick={approvePending}
+                  disabled={saving !== null}
+                  className="flex-1 py-3.5 rounded-2xl font-bold text-sm bg-green-500 text-white border-2 border-green-500 active:bg-green-600 disabled:opacity-50"
+                >
+                  {saving === 'approving' ? '…' : '✓ Approve'}
+                </button>
+                <button
+                  onClick={rejectPending}
+                  disabled={saving !== null}
+                  className="flex-1 py-3.5 rounded-2xl font-bold text-sm bg-red-50 text-red-600 border-2 border-red-200 active:bg-red-100 disabled:opacity-50"
+                >
+                  {saving === 'rejecting' ? '…' : '✕ Reject'}
+                </button>
+              </div>
+            </div>
+
+          ) : /* Not scheduled — specific_days or alternate_days workers on their off days */
+          !todayIsScheduled ? (
             <div className="bg-stone-50 rounded-2xl p-6 text-center border border-stone-100">
               <span className="text-4xl">🗓️</span>
               <p className="font-bold text-stone-600 text-lg mt-2">Not Scheduled Today</p>

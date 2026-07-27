@@ -5,6 +5,7 @@ import { useAuth } from '../contexts/AuthContext.jsx'
 import { roleLabel, roleIcon, STATUS_META, todayStr } from '../utils/salary.js'
 
 
+
 function scheduleLabel(worker) {
   const freq = worker.attendance_frequency || 'daily'
   if (freq === 'specific_days') {
@@ -31,6 +32,7 @@ export default function WorkerList() {
   const navigate = useNavigate()
   const [workers, setWorkers] = useState([])
   const [attendanceMap, setAttendanceMap] = useState({})
+  const [pendingCount, setPendingCount] = useState(0)
   const [loading, setLoading] = useState(true)
   const [activeRole, setActiveRole] = useState('all')
 
@@ -48,14 +50,15 @@ export default function WorkerList() {
     setWorkers(workerData)
 
     if (workerData.length > 0) {
-      const { data: todayAtt } = await supabase
-        .from('attendance')
-        .select('worker_id, status')
-        .in('worker_id', workerData.map(w => w.id))
-        .eq('date', todayStr())
+      const ids = workerData.map(w => w.id)
+      const [{ data: todayAtt }, { data: pendingAtt }] = await Promise.all([
+        supabase.from('attendance').select('worker_id, status').in('worker_id', ids).eq('date', todayStr()),
+        supabase.from('attendance').select('id').in('worker_id', ids).eq('approval_status', 'pending'),
+      ])
       const map = {}
       todayAtt?.forEach(a => { map[a.worker_id] = a.status })
       setAttendanceMap(map)
+      setPendingCount(pendingAtt?.length ?? 0)
     }
     setLoading(false)
   }
@@ -102,6 +105,20 @@ export default function WorkerList() {
             ? 'Add your first worker below'
             : `${workers.length} active · ${Object.keys(attendanceMap).length} marked today`}
         </p>
+
+        {pendingCount > 0 && (
+          <button
+            onClick={() => navigate('/pending-approvals')}
+            className="mt-3 w-full flex items-center gap-3 bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3 text-left active:bg-amber-100"
+          >
+            <span className="text-xl">⏳</span>
+            <div className="flex-1">
+              <p className="text-sm font-bold text-amber-800">{pendingCount} pending approval{pendingCount !== 1 ? 's' : ''}</p>
+              <p className="text-xs text-amber-600">Tap to review employee submissions</p>
+            </div>
+            <span className="text-amber-400 text-sm">→</span>
+          </button>
+        )}
       </header>
 
       {/* Role filter chips */}

@@ -56,7 +56,7 @@ export function isDateScheduled(dateStr, worker) {
 // Count of expected working days (the divisor for per-day rate).
 // For daily: all days minus weekly_off occurrences.
 // For specific_days/alternate_days: only the scheduled occurrences.
-function countExpectedWorkingDays(periodStart, periodEnd, worker) {
+export function countExpectedWorkingDays(periodStart, periodEnd, worker) {
   const freq = worker.attendance_frequency || 'daily'
   const cur  = new Date(periodStart + 'T00:00:00')
   const end  = new Date(periodEnd   + 'T00:00:00')
@@ -118,13 +118,14 @@ export function buildCalendarDays(periodStart, periodEnd, worker, attendanceReco
     const isWeeklyOff  = freq === 'daily' && dayName === (worker.weekly_off_day || 'Sunday')
 
     if (attendanceMap[dateStr]) {
-      days.push({ date: dateStr, dayName, status: attendanceMap[dateStr].status, id: attendanceMap[dateStr].id, isAutoWeeklyOff: false, isScheduled: scheduled })
+      const rec = attendanceMap[dateStr]
+      days.push({ date: dateStr, dayName, status: rec.status, approval_status: rec.approval_status ?? 'approved', submitted_by: rec.submitted_by ?? 'employer', id: rec.id, isAutoWeeklyOff: false, isScheduled: scheduled })
     } else if (isWeeklyOff) {
-      days.push({ date: dateStr, dayName, status: 'weekly_off', id: null, isAutoWeeklyOff: true, isScheduled: true })
+      days.push({ date: dateStr, dayName, status: 'weekly_off', approval_status: 'approved', submitted_by: 'employer', id: null, isAutoWeeklyOff: true, isScheduled: true })
     } else if (!scheduled) {
-      days.push({ date: dateStr, dayName, status: 'not_scheduled', id: null, isAutoWeeklyOff: false, isScheduled: false })
+      days.push({ date: dateStr, dayName, status: 'not_scheduled', approval_status: 'approved', submitted_by: 'employer', id: null, isAutoWeeklyOff: false, isScheduled: false })
     } else {
-      days.push({ date: dateStr, dayName, status: null, id: null, isAutoWeeklyOff: false, isScheduled: true })
+      days.push({ date: dateStr, dayName, status: null, approval_status: 'approved', submitted_by: 'employer', id: null, isAutoWeeklyOff: false, isScheduled: true })
     }
 
     current.setDate(current.getDate() + 1)
@@ -147,6 +148,7 @@ export function computeSummary(worker, calendarDays, payments) {
 
   calendarDays.forEach(day => {
     if (!day.status || day.status === 'not_scheduled') return
+    if (day.approval_status !== 'approved') return  // pending/rejected don't count toward salary
     switch (day.status) {
       case 'present':    counts.present++;    break
       case 'weekly_off': counts.weekly_off++; break
