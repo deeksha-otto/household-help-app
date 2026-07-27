@@ -159,20 +159,35 @@ export default function Login() {
     }
 
     // ── Worker sign-in ───────────────────────────────────────────────────────
-    const { data: workerRow, error: workerErr } = await supabase
-      .from('workers').select('id').eq('worker_auth_id', data.user.id).maybeSingle()
+    // Try 1: already linked
+    let { data: workerRow, error: workerErr } = await supabase
+      .from('workers').select('id, worker_auth_id').eq('worker_auth_id', data.user.id).maybeSingle()
 
-    if (workerErr) {
-      await supabase.auth.signOut()
-      throw workerErr
+    if (workerErr) { await supabase.auth.signOut(); throw workerErr }
+
+    // Try 2: auth user exists but worker_auth_id was never set (previous broken signup).
+    // Auto-link now using the email-match RLS policy.
+    if (!workerRow) {
+      const { data: byEmail, error: emailErr } = await supabase
+        .from('workers').select('id, worker_auth_id')
+        .eq('worker_email', email.trim().toLowerCase())
+        .maybeSingle()
+
+      if (emailErr) { await supabase.auth.signOut(); throw emailErr }
+
+      if (byEmail && byEmail.worker_auth_id === null) {
+        const { error: linkErr } = await supabase
+          .from('workers').update({ worker_auth_id: data.user.id }).eq('id', byEmail.id)
+        if (linkErr) { await supabase.auth.signOut(); throw linkErr }
+        workerRow = byEmail
+      }
     }
 
     if (!workerRow) {
-      // Write to sessionStorage before signOut so we survive the remount
       block(
-        'No worker account linked',
-        "This email doesn't have a worker login set up yet.",
-        'If your employer added you recently, switch to "Create Account" and sign up as a Worker first.'
+        'No worker profile found for this email',
+        "Your employer hasn't added this email as a worker yet.",
+        'Ask them to open Sahayak → Add Worker or Edit worker → set your email → Save.'
       )
       await supabase.auth.signOut()
       return
