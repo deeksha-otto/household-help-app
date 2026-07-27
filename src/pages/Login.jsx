@@ -175,7 +175,9 @@ export default function Login() {
 
       if (emailErr) { await supabase.auth.signOut(); throw emailErr }
 
-      if (byEmail && byEmail.worker_auth_id === null) {
+      if (byEmail) {
+        // Re-link to current auth user — safe because Supabase verified email ownership.
+        // Overwrites any stale worker_auth_id left by a previous broken signup attempt.
         const { error: linkErr } = await supabase
           .from('workers').update({ worker_auth_id: data.user.id }).eq('id', byEmail.id)
         if (linkErr) { await supabase.auth.signOut(); throw linkErr }
