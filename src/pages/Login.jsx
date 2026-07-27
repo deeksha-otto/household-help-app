@@ -1,8 +1,10 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import { useAuth } from '../contexts/AuthContext.jsx'
 
 export default function Login() {
+  const { refreshRole } = useAuth()
   const [role, setRole]       = useState('employer') // 'employer' | 'worker'
   const [mode, setMode]       = useState('login')    // 'login' | 'signup'
   const [email, setEmail]     = useState('')
@@ -51,6 +53,9 @@ export default function Login() {
           }
 
           await supabase.from('workers').update({ worker_auth_id: data.user.id }).eq('id', worker.id)
+          // Remove any stale employer row and force role re-resolve before navigating
+          await supabase.from('employers').delete().eq('id', data.user.id)
+          await refreshRole()
           navigate('/employee/attendance')
         }
 
@@ -75,6 +80,9 @@ export default function Login() {
             setError('No linked worker account found. Ask your employer to add you, or sign up as a worker first.')
             return
           }
+          // Remove any stale employer row and force role re-resolve before navigating
+          await supabase.from('employers').delete().eq('id', data.user.id)
+          await refreshRole()
           navigate('/employee/attendance')
         }
       }

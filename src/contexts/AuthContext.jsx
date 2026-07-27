@@ -43,6 +43,13 @@ export function AuthProvider({ children }) {
     setWorkerRecord(null)
   }
 
+  async function refreshRole() {
+    setLoading(true)
+    const { data: { user: u } } = await supabase.auth.getUser()
+    if (u) await resolveRole(u)
+    setLoading(false)
+  }
+
   async function signOut() {
     await supabase.auth.signOut()
     setUserRole(null)
@@ -50,7 +57,7 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, userRole, workerRecord, signOut }}>
+    <AuthContext.Provider value={{ user, loading, userRole, workerRecord, signOut, refreshRole }}>
       {children}
     </AuthContext.Provider>
   )
