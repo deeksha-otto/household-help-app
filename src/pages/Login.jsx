@@ -88,22 +88,38 @@ export default function Login() {
     }
 
     // ── Worker signup ────────────────────────────────────────────────────────
-    // Pre-check BEFORE creating an auth account — errors show as blocking cards
-    // that survive any remount caused by onAuthStateChange.
+    // Sign up FIRST so we're authenticated, then look up the worker row.
+    // The workers table has RLS — unauthenticated queries always return null,
+    // so we must be logged in before we can find the row by email.
+    const { data, error: signUpError } = await supabase.auth.signUp({ email, password })
+    if (signUpError) throw signUpError
+
+    if (!data.session) {
+      setInfo('Account created! Confirm your email, then sign in as a Worker.')
+      setMode('login')
+      return
+    }
+
+    // Now authenticated — find worker row via the "find own record by email" RLS policy
     const { data: workerRow, error: lookupErr } = await supabase
       .from('workers')
       .select('id, worker_auth_id')
       .eq('worker_email', email.trim().toLowerCase())
       .maybeSingle()
 
-    if (lookupErr) throw lookupErr
+    if (lookupErr) {
+      block('Something went wrong', lookupErr.message, 'Please try again or contact support.')
+      await supabase.auth.signOut()
+      return
+    }
 
     if (!workerRow) {
       block(
         'No worker profile found',
         'Your employer needs to add your email address in the app before you can sign up.',
-        'Ask them to open Sahayak → tap your name → Edit → add your email → Save.'
+        'Ask them to open Sahayak → tap your name (or Add Worker) → add your email → Save.'
       )
+      await supabase.auth.signOut()
       return
     }
 
@@ -113,25 +129,18 @@ export default function Login() {
         'A login is already set up for this email.',
         'Switch to "Sign In" and use your password to log in.'
       )
+      await supabase.auth.signOut()
       return
     }
 
-    // Worker found and unlinked — create auth account
-    const { data, error: signUpError } = await supabase.auth.signUp({ email, password })
-    if (signUpError) throw signUpError
-
-    if (!data.session) {
-      if (data.user?.id) {
-        await supabase.from('workers').update({ worker_auth_id: data.user.id }).eq('id', workerRow.id)
-      }
-      setInfo('Account created! Confirm your email, then sign in as a Worker.')
-      setMode('login')
-      return
-    }
-
+    // Link auth ID — uses the "Workers link own auth id" RLS policy
     const { error: updateErr } = await supabase
       .from('workers').update({ worker_auth_id: data.user.id }).eq('id', workerRow.id)
-    if (updateErr) throw updateErr
+    if (updateErr) {
+      block('Could not link account', updateErr.message, 'Please try again or contact support.')
+      await supabase.auth.signOut()
+      return
+    }
 
     await supabase.from('employers').delete().eq('id', data.user.id)
     await refreshRole()
