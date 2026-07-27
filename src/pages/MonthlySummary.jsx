@@ -90,11 +90,11 @@ export default function MonthlySummary() {
 
       {/* ── Settled banner ───────────────────────────────────────────── */}
       {settled && (
-        <div className="bg-teal-50 border-2 border-teal-200 rounded-2xl p-4 flex items-start gap-3">
+        <div className="bg-brand-50 border-2 border-brand-200 rounded-2xl p-4 flex items-start gap-3">
           <span className="text-2xl">✅</span>
           <div>
-            <p className="font-bold text-teal-800 text-sm">Period settled!</p>
-            <p className="text-teal-600 text-xs mt-0.5">
+            <p className="font-bold text-brand-800 text-sm">Period settled!</p>
+            <p className="text-brand-600 text-xs mt-0.5">
               New cycle starts from {period && formatDate(period.periodEnd)}.
             </p>
           </div>
@@ -216,11 +216,11 @@ export default function MonthlySummary() {
         </div>
 
         {/* Final amount — prominent */}
-        <div className={`mt-5 rounded-2xl p-5 ${isNegative ? 'bg-red-50 border-2 border-red-200' : 'bg-teal-50 border-2 border-teal-200'}`}>
-          <p className={`text-xs font-semibold uppercase tracking-widest mb-1 ${isNegative ? 'text-red-500' : 'text-teal-600'}`}>
+        <div className={`mt-5 rounded-2xl p-5 ${isNegative ? 'bg-red-50 border-2 border-red-200' : 'bg-brand-50 border-2 border-brand-200'}`}>
+          <p className={`text-xs font-semibold uppercase tracking-widest mb-1 ${isNegative ? 'text-red-500' : 'text-brand-600'}`}>
             {isNegative ? 'Overpaid' : 'Amount due'}
           </p>
-          <p className={`text-4xl font-bold tracking-tight ${isNegative ? 'text-red-700' : 'text-teal-700'}`}>
+          <p className={`text-4xl font-bold tracking-tight ${isNegative ? 'text-red-700' : 'text-brand-700'}`}>
             {formatCurrency(Math.abs(finalAmountDue))}
           </p>
           {isNegative && (

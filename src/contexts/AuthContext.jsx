@@ -33,26 +33,11 @@ export function AuthProvider({ children }) {
   }, [])
 
   async function resolveRole(u) {
-    // 1. Employer?
     const { data: emp } = await supabase.from('employers').select('id').eq('id', u.id).maybeSingle()
     if (emp) { setUserRole('employer'); setWorkerRecord(null); return }
 
-    // 2. Already-linked worker?
     const { data: linked } = await supabase.from('workers').select('*').eq('worker_auth_id', u.id).maybeSingle()
     if (linked) { setUserRole('employee'); setWorkerRecord(linked); return }
-
-    // 3. First sign-in: match by email, link if found
-    const { data: unlinked } = await supabase.from('workers')
-      .select('*')
-      .eq('worker_email', u.email)
-      .is('worker_auth_id', null)
-      .maybeSingle()
-    if (unlinked) {
-      await supabase.from('workers').update({ worker_auth_id: u.id }).eq('id', unlinked.id)
-      setUserRole('employee')
-      setWorkerRecord({ ...unlinked, worker_auth_id: u.id })
-      return
-    }
 
     setUserRole('unknown')
     setWorkerRecord(null)

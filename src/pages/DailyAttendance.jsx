@@ -234,10 +234,10 @@ export default function DailyAttendance() {
 
           ) : justMarked && justMarked !== '__edit__' ? (
             /* Brief success flash */
-            <div className="bg-teal-50 rounded-2xl p-6 text-center border border-teal-200">
+            <div className="bg-brand-50 rounded-2xl p-6 text-center border border-brand-200">
               <span className="text-4xl">✅</span>
-              <p className="font-bold text-teal-700 text-lg mt-2">{STATUS_META[justMarked]?.label} saved!</p>
-              <p className="text-teal-500 text-sm mt-0.5">Attendance recorded for today</p>
+              <p className="font-bold text-brand-700 text-lg mt-2">{STATUS_META[justMarked]?.label} saved!</p>
+              <p className="text-brand-500 text-sm mt-0.5">Attendance recorded for today</p>
             </div>
 
           ) : (
@@ -337,7 +337,7 @@ export default function DailyAttendance() {
                           ) : (
                             <button
                               onClick={() => setEditingDate(isEditingThis ? null : day.date)}
-                              className="text-xs font-bold text-teal-600 px-3 py-1 rounded-full bg-teal-50"
+                              className="text-xs font-bold text-brand-600 px-3 py-1 rounded-full bg-brand-50"
                             >
                               Mark
                             </button>

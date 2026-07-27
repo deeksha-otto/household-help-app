@@ -200,11 +200,11 @@ export default function AddEditWorker() {
                   type="button"
                   onClick={() => update('role', r.value)}
                   className={`flex flex-col items-center justify-center gap-1 py-3 rounded-xl border-2 transition-all ${
-                    isActive ? 'border-teal-500 bg-teal-50' : 'border-stone-100 bg-stone-50 active:bg-stone-100'
+                    isActive ? 'border-brand-500 bg-brand-50' : 'border-stone-100 bg-stone-50 active:bg-stone-100'
                   }`}
                 >
                   <span className="text-2xl leading-none">{r.icon}</span>
-                  <span className={`text-xs font-semibold leading-tight text-center ${isActive ? 'text-teal-700' : 'text-stone-500'}`}>
+                  <span className={`text-xs font-semibold leading-tight text-center ${isActive ? 'text-brand-700' : 'text-stone-500'}`}>
                     {r.label}
                   </span>
                 </button>
@@ -282,14 +282,14 @@ export default function AddEditWorker() {
                   type="button"
                   onClick={() => update('attendance_frequency', opt.value)}
                   className={`flex flex-col items-center gap-1.5 py-4 px-2 rounded-2xl border-2 transition-all ${
-                    isActive ? 'border-teal-500 bg-teal-50' : 'border-stone-100 bg-stone-50 active:bg-stone-100'
+                    isActive ? 'border-brand-500 bg-brand-50' : 'border-stone-100 bg-stone-50 active:bg-stone-100'
                   }`}
                 >
                   <span className="text-2xl leading-none">{opt.icon}</span>
-                  <span className={`text-xs font-bold text-center leading-tight ${isActive ? 'text-teal-700' : 'text-stone-500'}`}>
+                  <span className={`text-xs font-bold text-center leading-tight ${isActive ? 'text-brand-700' : 'text-stone-500'}`}>
                     {opt.label}
                   </span>
-                  <span className={`text-[10px] text-center leading-tight ${isActive ? 'text-teal-500' : 'text-stone-400'}`}>
+                  <span className={`text-[10px] text-center leading-tight ${isActive ? 'text-brand-500' : 'text-stone-400'}`}>
                     {opt.desc}
                   </span>
                 </button>
@@ -310,7 +310,7 @@ export default function AddEditWorker() {
                       type="button"
                       onClick={() => update('weekly_off_day', d.full)}
                       className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all border-2 ${
-                        isActive ? 'bg-teal-600 text-white border-teal-600' : 'bg-stone-50 text-stone-500 border-stone-100 active:bg-stone-100'
+                        isActive ? 'bg-brand-600 text-white border-brand-600' : 'bg-stone-50 text-stone-500 border-stone-100 active:bg-stone-100'
                       }`}
                     >
                       {d.short}
@@ -335,7 +335,7 @@ export default function AddEditWorker() {
                       type="button"
                       onClick={() => toggleDay(d.full)}
                       className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all border-2 ${
-                        isActive ? 'bg-teal-600 text-white border-teal-600' : 'bg-stone-50 text-stone-500 border-stone-100 active:bg-stone-100'
+                        isActive ? 'bg-brand-600 text-white border-brand-600' : 'bg-stone-50 text-stone-500 border-stone-100 active:bg-stone-100'
                       }`}
                     >
                       {d.short}

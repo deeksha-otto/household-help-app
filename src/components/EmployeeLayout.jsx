@@ -19,7 +19,7 @@ export default function EmployeeLayout() {
     <div className="flex flex-col min-h-dvh" style={{ background: '#f5f4f0' }}>
       <header className="bg-white border-b border-stone-100 sticky top-0 z-20">
         <div className="flex items-center gap-3 px-4 py-3.5">
-          <div className="w-10 h-10 rounded-2xl bg-teal-50 flex items-center justify-center text-xl flex-shrink-0">
+          <div className="w-10 h-10 rounded-2xl bg-brand-50 flex items-center justify-center text-xl flex-shrink-0">
             {worker ? roleIcon(worker.role) : '👤'}
           </div>
           <div className="flex-1 min-w-0">
@@ -51,12 +51,12 @@ export default function EmployeeLayout() {
               key={tab.path}
               onClick={() => navigate(`/employee/${tab.path}`)}
               className={`flex-1 py-2.5 flex flex-col items-center gap-0.5 text-xs font-semibold transition-colors relative ${
-                isActive ? 'text-teal-700' : 'text-stone-400'
+                isActive ? 'text-brand-700' : 'text-stone-400'
               }`}
             >
               <span className="text-lg leading-none">{tab.icon}</span>
               <span>{tab.label}</span>
-              {isActive && <span className="absolute bottom-0 h-0.5 w-8 bg-teal-600 rounded-full" />}
+              {isActive && <span className="absolute bottom-0 h-0.5 w-8 bg-brand-600 rounded-full" />}
             </button>
           )
         })}

@@ -166,7 +166,7 @@ export default function LogPayment() {
               {idx > 0 && <div className="border-t border-stone-50 mx-4" />}
               <div className="px-4 py-3.5 flex items-center gap-3">
                 {/* Icon bubble */}
-                <div className="w-10 h-10 rounded-full bg-teal-50 flex items-center justify-center flex-shrink-0">
+                <div className="w-10 h-10 rounded-full bg-brand-50 flex items-center justify-center flex-shrink-0">
                   <span className="text-lg leading-none">💸</span>
                 </div>
 

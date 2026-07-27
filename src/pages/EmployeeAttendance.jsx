@@ -167,10 +167,10 @@ export default function EmployeeAttendance() {
             </div>
 
           ) : justMarked && justMarked !== '__edit__' ? (
-            <div className="bg-teal-50 rounded-2xl p-6 text-center border border-teal-200">
+            <div className="bg-brand-50 rounded-2xl p-6 text-center border border-brand-200">
               <span className="text-4xl">✅</span>
-              <p className="font-bold text-teal-700 text-lg mt-2">{STATUS_META[justMarked]?.label} submitted!</p>
-              <p className="text-teal-500 text-sm mt-0.5">Waiting for your employer to approve</p>
+              <p className="font-bold text-brand-700 text-lg mt-2">{STATUS_META[justMarked]?.label} submitted!</p>
+              <p className="text-brand-500 text-sm mt-0.5">Waiting for your employer to approve</p>
             </div>
 
           ) : (

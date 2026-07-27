@@ -71,13 +71,13 @@ export default function WorkerLayout() {
               key={tab.path}
               onClick={() => navigate(`/workers/${id}/${tab.path}`)}
               className={`flex-1 py-2.5 flex flex-col items-center gap-0.5 text-xs font-semibold transition-colors ${
-                isActive ? 'text-teal-700' : 'text-stone-400'
+                isActive ? 'text-brand-700' : 'text-stone-400'
               }`}
             >
               <span className="text-lg leading-none">{tab.icon}</span>
               <span>{tab.label}</span>
               {isActive && (
-                <span className="absolute bottom-0 h-0.5 w-8 bg-teal-600 rounded-full" />
+                <span className="absolute bottom-0 h-0.5 w-8 bg-brand-600 rounded-full" />
               )}
             </button>
           )

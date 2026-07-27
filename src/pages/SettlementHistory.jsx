@@ -68,7 +68,7 @@ export default function SettlementHistory() {
               className="w-full px-5 py-4 flex items-center gap-3 text-left active:bg-stone-50"
             >
               {/* Green checkmark circle */}
-              <div className="w-9 h-9 rounded-full bg-teal-50 flex items-center justify-center flex-shrink-0">
+              <div className="w-9 h-9 rounded-full bg-brand-50 flex items-center justify-center flex-shrink-0">
                 <span className="text-base leading-none">✅</span>
               </div>
 
@@ -85,7 +85,7 @@ export default function SettlementHistory() {
               {/* Amount + chevron */}
               <div className="flex items-center gap-2 flex-shrink-0">
                 <div className="text-right">
-                  <p className={`text-base font-bold leading-tight ${isNegative ? 'text-red-600' : 'text-teal-700'}`}>
+                  <p className={`text-base font-bold leading-tight ${isNegative ? 'text-red-600' : 'text-brand-700'}`}>
                     {formatCurrency(s.final_amount_due)}
                   </p>
                   <p className="text-[10px] text-stone-400 text-right">paid</p>
@@ -137,10 +137,10 @@ export default function SettlementHistory() {
                   )}
 
                   <div className="border-t border-stone-100 pt-2.5 flex justify-between items-center">
-                    <span className={`text-sm font-bold ${isNegative ? 'text-red-600' : 'text-teal-700'}`}>
+                    <span className={`text-sm font-bold ${isNegative ? 'text-red-600' : 'text-brand-700'}`}>
                       Final paid
                     </span>
-                    <span className={`text-lg font-bold ${isNegative ? 'text-red-600' : 'text-teal-700'}`}>
+                    <span className={`text-lg font-bold ${isNegative ? 'text-red-600' : 'text-brand-700'}`}>
                       {formatCurrency(s.final_amount_due)}
                     </span>
                   </div>

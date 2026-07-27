@@ -79,7 +79,7 @@ export default function WorkerList() {
     return (
       <div className="flex items-center justify-center min-h-dvh" style={{ background: '#f5f4f0' }}>
         <div className="flex flex-col items-center gap-3">
-          <div className="w-10 h-10 rounded-full border-3 border-teal-200 border-t-teal-600 animate-spin" />
+          <div className="w-10 h-10 rounded-full border-3 border-brand-200 border-t-brand-600 animate-spin" />
           <p className="text-stone-400 text-sm">Loading workers…</p>
         </div>
       </div>
@@ -132,7 +132,7 @@ export default function WorkerList() {
                 onClick={() => setActiveRole(role)}
                 className={`flex-shrink-0 px-4 py-1.5 rounded-full text-sm font-semibold border transition-colors ${
                   isActive
-                    ? 'bg-teal-600 text-white border-teal-600'
+                    ? 'bg-brand-600 text-white border-brand-600'
                     : 'bg-white text-stone-500 border-stone-200'
                 }`}
               >
@@ -201,7 +201,7 @@ export default function WorkerList() {
       {/* FAB */}
       <button
         onClick={() => navigate('/workers/new')}
-        className="fixed bottom-6 right-4 w-16 h-16 bg-teal-600 text-white rounded-full shadow-xl text-4xl flex items-center justify-center active:bg-teal-700 active:scale-95 transition-all z-10 font-light"
+        className="fixed bottom-6 right-4 w-16 h-16 bg-brand-600 text-white rounded-full shadow-xl text-4xl flex items-center justify-center active:bg-brand-700 active:scale-95 transition-all z-10 font-light"
       >
         +
       </button>

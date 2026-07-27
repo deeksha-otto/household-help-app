@@ -136,10 +136,10 @@ export default function EmployeeSummary() {
           )}
         </div>
 
-        <div className="mt-5 rounded-2xl p-5 bg-teal-50 border-2 border-teal-200">
-          <p className="text-xs font-semibold uppercase tracking-widest mb-1 text-teal-600">Estimated amount due</p>
-          <p className="text-4xl font-bold tracking-tight text-teal-700">{formatCurrency(Math.abs(finalAmountDue))}</p>
-          <p className="text-xs text-teal-500 mt-1">Advances paid by employer are not shown here</p>
+        <div className="mt-5 rounded-2xl p-5 bg-brand-50 border-2 border-brand-200">
+          <p className="text-xs font-semibold uppercase tracking-widest mb-1 text-brand-600">Estimated amount due</p>
+          <p className="text-4xl font-bold tracking-tight text-brand-700">{formatCurrency(Math.abs(finalAmountDue))}</p>
+          <p className="text-xs text-brand-500 mt-1">Advances paid by employer are not shown here</p>
         </div>
       </div>
     </div>
