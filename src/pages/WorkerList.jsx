@@ -4,26 +4,6 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext.jsx'
 import { roleLabel, roleIcon, STATUS_META, todayStr } from '../utils/salary.js'
 
-async function computeStreak(workerIds) {
-  if (workerIds.length === 0) return 0
-  const cutoff = new Date()
-  cutoff.setDate(cutoff.getDate() - 90)
-  const { data } = await supabase
-    .from('attendance')
-    .select('date')
-    .in('worker_id', workerIds)
-    .gte('date', cutoff.toISOString().split('T')[0])
-  if (!data?.length) return 0
-  const dateSet = new Set(data.map(r => r.date))
-  let count = 0
-  const cur = new Date()
-  while (true) {
-    const d = cur.toISOString().split('T')[0]
-    if (dateSet.has(d)) { count++; cur.setDate(cur.getDate() - 1) }
-    else break
-  }
-  return count
-}
 
 function scheduleLabel(worker) {
   const freq = worker.attendance_frequency || 'daily'
@@ -53,7 +33,6 @@ export default function WorkerList() {
   const [attendanceMap, setAttendanceMap] = useState({})
   const [loading, setLoading] = useState(true)
   const [activeRole, setActiveRole] = useState('all')
-  const [streak, setStreak] = useState(0)
 
   useEffect(() => { loadData() }, [])
 
@@ -69,15 +48,14 @@ export default function WorkerList() {
     setWorkers(workerData)
 
     if (workerData.length > 0) {
-      const ids = workerData.map(w => w.id)
-      const [{ data: todayAtt }, s] = await Promise.all([
-        supabase.from('attendance').select('worker_id, status').in('worker_id', ids).eq('date', todayStr()),
-        computeStreak(ids),
-      ])
+      const { data: todayAtt } = await supabase
+        .from('attendance')
+        .select('worker_id, status')
+        .in('worker_id', workerData.map(w => w.id))
+        .eq('date', todayStr())
       const map = {}
       todayAtt?.forEach(a => { map[a.worker_id] = a.status })
       setAttendanceMap(map)
-      setStreak(s)
     }
     setLoading(false)
   }
@@ -112,20 +90,12 @@ export default function WorkerList() {
       <header className="bg-white border-b border-stone-100 px-5 pt-5 pb-4">
         <div className="flex items-center justify-between mb-1">
           <h1 className="text-2xl font-bold text-stone-800">Sahayak</h1>
-          <div className="flex items-center gap-2">
-            {streak > 0 && (
-              <div className="flex items-center gap-1 bg-amber-50 border border-amber-200 rounded-full px-3 py-1">
-                <span className="text-base leading-none">🔥</span>
-                <span className="text-amber-700 font-black text-sm">{streak}</span>
-              </div>
-            )}
-            <button
-              onClick={handleSignOut}
-              className="text-sm font-medium text-stone-400 px-3 py-1.5 rounded-lg border border-stone-200 active:bg-stone-50"
-            >
-              Sign out
-            </button>
-          </div>
+          <button
+            onClick={handleSignOut}
+            className="text-sm font-medium text-stone-400 px-3 py-1.5 rounded-lg border border-stone-200 active:bg-stone-50"
+          >
+            Sign out
+          </button>
         </div>
         <p className="text-stone-400 text-sm">
           {workers.length === 0
