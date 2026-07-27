@@ -25,72 +25,105 @@ export default function Login() {
 
     try {
       if (mode === 'signup') {
-        const { data, error: signUpError } = await supabase.auth.signUp({ email, password })
-        if (signUpError) throw signUpError
-
-        if (!data.session) {
-          setInfo('Account created! Check your email for a confirmation link, then sign in.')
-          setMode('login')
-          return
-        }
-
-        if (role === 'employer') {
-          await supabase.from('employers').upsert({ id: data.user.id }, { onConflict: 'id' })
-          navigate('/')
-        } else {
-          // Worker signup: find matching worker_email and link
-          const { data: worker } = await supabase
-            .from('workers')
-            .select('id')
-            .eq('worker_email', email.trim().toLowerCase())
-            .is('worker_auth_id', null)
-            .maybeSingle()
-
-          if (!worker) {
-            await supabase.auth.signOut()
-            setError('No worker profile found for this email. Ask your employer to add you first, then sign up.')
-            return
-          }
-
-          await supabase.from('workers').update({ worker_auth_id: data.user.id }).eq('id', worker.id)
-          // Remove any stale employer row and force role re-resolve before navigating
-          await supabase.from('employers').delete().eq('id', data.user.id)
-          await refreshRole()
-          navigate('/employee/attendance')
-        }
-
+        await handleSignup()
       } else {
-        // Sign in
-        const { data, error: signInError } = await supabase.auth.signInWithPassword({ email, password })
-        if (signInError) throw signInError
-
-        if (role === 'employer') {
-          const { data: emp } = await supabase
-            .from('employers').select('id').eq('id', data.user.id).maybeSingle()
-          if (!emp) {
-            // Create employer row if missing (e.g. confirmed email after signup)
-            await supabase.from('employers').upsert({ id: data.user.id }, { onConflict: 'id' })
-          }
-          navigate('/')
-        } else {
-          const { data: worker } = await supabase
-            .from('workers').select('id').eq('worker_auth_id', data.user.id).maybeSingle()
-          if (!worker) {
-            await supabase.auth.signOut()
-            setError('No linked worker account found. Ask your employer to add you, or sign up as a worker first.')
-            return
-          }
-          // Remove any stale employer row and force role re-resolve before navigating
-          await supabase.from('employers').delete().eq('id', data.user.id)
-          await refreshRole()
-          navigate('/employee/attendance')
-        }
+        await handleSignin()
       }
     } catch (err) {
-      setError(err.message)
+      setError(err.message || 'Something went wrong. Please try again.')
     } finally {
       setLoading(false)
     }
+  }
+
+  async function handleSignup() {
+    if (role === 'employer') {
+      const { data, error: signUpError } = await supabase.auth.signUp({ email, password })
+      if (signUpError) throw signUpError
+      if (!data.session) {
+        setInfo('Account created! Check your email for a confirmation link, then sign in.')
+        setMode('login')
+        return
+      }
+      const { error: empErr } = await supabase.from('employers').upsert({ id: data.user.id }, { onConflict: 'id' })
+      if (empErr) throw empErr
+      navigate('/')
+      return
+    }
+
+    // ── Worker signup ────────────────────────────────────────────────────────
+    // Pre-check BEFORE creating an auth account so errors show immediately,
+    // avoiding the onAuthStateChange race that unmounts this component.
+    const { data: workerRow, error: lookupErr } = await supabase
+      .from('workers')
+      .select('id, worker_auth_id')
+      .eq('worker_email', email.trim().toLowerCase())
+      .maybeSingle()
+
+    if (lookupErr) throw lookupErr
+
+    if (!workerRow) {
+      setError('No worker profile found for this email. Ask your employer to add your email in the app first, then come back and sign up.')
+      return
+    }
+
+    if (workerRow.worker_auth_id !== null) {
+      setError('This worker account already has a login set up. Switch to "Sign In" instead.')
+      return
+    }
+
+    // Worker exists and is unlinked — now create the auth account
+    const { data, error: signUpError } = await supabase.auth.signUp({ email, password })
+    if (signUpError) throw signUpError
+
+    if (!data.session) {
+      // Email confirmation required — link using the user ID we have now
+      if (data.user?.id) {
+        await supabase.from('workers').update({ worker_auth_id: data.user.id }).eq('id', workerRow.id)
+      }
+      setInfo('Account created! Confirm your email, then sign in as a Worker.')
+      setMode('login')
+      return
+    }
+
+    const { error: updateErr } = await supabase
+      .from('workers').update({ worker_auth_id: data.user.id }).eq('id', workerRow.id)
+    if (updateErr) throw updateErr
+
+    await supabase.from('employers').delete().eq('id', data.user.id)
+    await refreshRole()
+    navigate('/employee/attendance')
+  }
+
+  async function handleSignin() {
+    const { data, error: signInError } = await supabase.auth.signInWithPassword({ email, password })
+    if (signInError) throw signInError
+
+    if (role === 'employer') {
+      const { error: empErr } = await supabase.from('employers').upsert({ id: data.user.id }, { onConflict: 'id' })
+      if (empErr) throw empErr
+      navigate('/')
+      return
+    }
+
+    // ── Worker sign-in ───────────────────────────────────────────────────────
+    const { data: workerRow, error: workerErr } = await supabase
+      .from('workers').select('id').eq('worker_auth_id', data.user.id).maybeSingle()
+
+    if (workerErr) {
+      await supabase.auth.signOut()
+      throw workerErr
+    }
+
+    if (!workerRow) {
+      await supabase.auth.signOut()
+      setError("No worker account is linked to this email. If you haven't signed up yet, switch to \"Create Account\".")
+      return
+    }
+
+    await supabase.from('employers').delete().eq('id', data.user.id)
+    await refreshRole()
+    navigate('/employee/attendance')
   }
 
   return (

@@ -26,6 +26,7 @@ export function AuthProvider({ children }) {
       } else {
         setUserRole(null)
         setWorkerRecord(null)
+        setLoading(false)   // prevent RequireGuest spinner from unmounting Login on sign-out
       }
     })
 
