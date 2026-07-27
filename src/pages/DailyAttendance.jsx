@@ -9,37 +9,14 @@ import {
   formatShortDate,
   todayStr,
   STATUS_META,
+  isDateScheduled,
 } from '../utils/salary.js'
 
 const ATT_BUTTONS = [
-  {
-    status: 'present',
-    label: 'Present',
-    icon: '✅',
-    activeClass: 'bg-green-500 border-green-500 text-white',
-    idleClass:   'bg-green-50 border-green-300 text-green-700 active:bg-green-100',
-  },
-  {
-    status: 'absent',
-    label: 'Absent',
-    icon: '❌',
-    activeClass: 'bg-red-500 border-red-500 text-white',
-    idleClass:   'bg-red-50 border-red-300 text-red-700 active:bg-red-100',
-  },
-  {
-    status: 'half_day',
-    label: 'Half Day',
-    icon: '🌓',
-    activeClass: 'bg-amber-500 border-amber-500 text-white',
-    idleClass:   'bg-amber-50 border-amber-300 text-amber-700 active:bg-amber-100',
-  },
-  {
-    status: 'paid_leave',
-    label: 'Paid Leave',
-    icon: '📋',
-    activeClass: 'bg-blue-500 border-blue-500 text-white',
-    idleClass:   'bg-blue-50 border-blue-300 text-blue-700 active:bg-blue-100',
-  },
+  { status: 'present',    label: 'Present',    icon: '✅', activeClass: 'bg-green-500 border-green-500 text-white', idleClass: 'bg-green-50 border-green-300 text-green-700 active:bg-green-100' },
+  { status: 'absent',     label: 'Absent',     icon: '❌', activeClass: 'bg-red-500 border-red-500 text-white',    idleClass: 'bg-red-50 border-red-300 text-red-700 active:bg-red-100' },
+  { status: 'half_day',   label: 'Half Day',   icon: '🌓', activeClass: 'bg-amber-500 border-amber-500 text-white',idleClass: 'bg-amber-50 border-amber-300 text-amber-700 active:bg-amber-100' },
+  { status: 'paid_leave', label: 'Paid Leave', icon: '📋', activeClass: 'bg-blue-500 border-blue-500 text-white',  idleClass: 'bg-blue-50 border-blue-300 text-blue-700 active:bg-blue-100' },
 ]
 
 export default function DailyAttendance() {
@@ -47,14 +24,19 @@ export default function DailyAttendance() {
   const [calendarDays, setCalendarDays] = useState([])
   const [period, setPeriod] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(null)          // status being saved
-  const [justMarked, setJustMarked] = useState(null)  // brief success state
+  const [saving, setSaving] = useState(null)
+  const [justMarked, setJustMarked] = useState(null)
   const [showPaidLeaveWarning, setShowPaidLeaveWarning] = useState(false)
   const [editingDate, setEditingDate] = useState(null)
   const [showPastDays, setShowPastDays] = useState(false)
 
   const today = todayStr()
-  const todayIsWeeklyOff = worker ? getWeekdayName(today) === worker.weekly_off_day : false
+  const freq  = worker?.attendance_frequency || 'daily'
+
+  // Is today scheduled for this worker at all?
+  const todayIsScheduled = worker ? isDateScheduled(today, worker) : true
+  // Weekly off only applies to daily-frequency workers
+  const todayIsWeeklyOff = freq === 'daily' && worker ? getWeekdayName(today) === worker.weekly_off_day : false
 
   const loadData = useCallback(async (showSpinner = true) => {
     if (!worker) return
@@ -67,23 +49,20 @@ export default function DailyAttendance() {
       .eq('worker_id', worker.id)
       .gte('date', p.periodStart)
       .lte('date', p.periodEnd)
-    setCalendarDays(buildCalendarDays(p.periodStart, p.periodEnd, worker.weekly_off_day, records || []))
+    setCalendarDays(buildCalendarDays(p.periodStart, p.periodEnd, worker, records || []))
     if (showSpinner) setLoading(false)
   }, [worker])
 
   useEffect(() => { loadData() }, [loadData])
 
-  const todayDay   = calendarDays.find(d => d.date === today)
-  const pastDays   = [...calendarDays].reverse().filter(d => d.date !== today)
+  const todayDay = calendarDays.find(d => d.date === today)
+  const pastDays = [...calendarDays].reverse().filter(d => d.date !== today)
 
-  // Paid-leave count excluding today (to detect if tapping PL today would exceed limit)
   const paidLeavesUsedExcludingToday = calendarDays.filter(
     d => d.date !== today && d.status === 'paid_leave'
   ).length
-  // Warn when used leaves >= allowed — includes the case where allowed = 0 (any PL tap is over limit)
   const paidLeaveWouldExceed =
-    worker &&
-    paidLeavesUsedExcludingToday >= (worker.allowed_paid_leaves ?? 0)
+    worker && paidLeavesUsedExcludingToday >= (worker.allowed_paid_leaves ?? 0)
 
   async function markAttendance(date, status) {
     setSaving(status)
@@ -111,18 +90,13 @@ export default function DailyAttendance() {
   }
 
   if (loading || !worker) {
-    return (
-      <div className="flex items-center justify-center py-24 text-stone-400">
-        Loading…
-      </div>
-    )
+    return <div className="flex items-center justify-center py-24 text-stone-400">Loading…</div>
   }
 
-  const todayStatus  = todayDay?.status ?? null
-  const todayMeta    = todayStatus ? STATUS_META[todayStatus] : null
-  const isEditing    = !todayStatus || justMarked !== null
+  const todayStatus = todayDay?.status ?? null
+  const todayMeta   = todayStatus ? STATUS_META[todayStatus] : null
 
-  // ─── Paid-leave warning overlay ───────────────────────────────────────────
+  // ── Paid-leave warning overlay ────────────────────────────────────────────
   if (showPaidLeaveWarning) {
     return (
       <div className="p-4 space-y-4">
@@ -141,7 +115,6 @@ export default function DailyAttendance() {
               </div>
             </div>
           </div>
-
           <div className="mt-5 space-y-3">
             <button
               onClick={() => markAttendance(today, 'paid_leave')}
@@ -167,8 +140,6 @@ export default function DailyAttendance() {
 
       {/* ── Today card ──────────────────────────────────────────────── */}
       <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-
-        {/* Date header */}
         <div className="px-5 pt-5 pb-4 border-b border-stone-50">
           <p className="text-xs font-semibold text-stone-400 uppercase tracking-widest">Today</p>
           <p className="text-2xl font-bold text-stone-800 mt-0.5">{formatDate(today)}</p>
@@ -176,8 +147,20 @@ export default function DailyAttendance() {
         </div>
 
         <div className="p-4">
-          {/* Weekly off */}
-          {todayIsWeeklyOff ? (
+          {/* Not scheduled — specific_days or alternate_days workers on their off days */}
+          {!todayIsScheduled ? (
+            <div className="bg-stone-50 rounded-2xl p-6 text-center border border-stone-100">
+              <span className="text-4xl">🗓️</span>
+              <p className="font-bold text-stone-600 text-lg mt-2">Not Scheduled Today</p>
+              <p className="text-stone-400 text-sm mt-1">
+                {freq === 'specific_days'
+                  ? `Scheduled on ${(worker.scheduled_days || []).join(', ')}`
+                  : 'Comes every other day — not scheduled today'}
+              </p>
+            </div>
+
+          ) : todayIsWeeklyOff ? (
+            /* Weekly off — Daily-frequency workers */
             <div className="bg-stone-50 rounded-2xl p-6 text-center border border-stone-100">
               <span className="text-4xl">😴</span>
               <p className="font-bold text-stone-600 text-lg mt-2">Weekly Off</p>
@@ -185,12 +168,10 @@ export default function DailyAttendance() {
             </div>
 
           ) : todayStatus && justMarked === null ? (
-            /* Already marked — show status + Change */
+            /* Already marked */
             <div>
               <div className={`${todayMeta.bg} rounded-2xl p-5 flex items-center gap-4 border ${todayMeta.border}`}>
-                <span className="text-4xl">
-                  {ATT_BUTTONS.find(b => b.status === todayStatus)?.icon}
-                </span>
+                <span className="text-4xl">{ATT_BUTTONS.find(b => b.status === todayStatus)?.icon}</span>
                 <div>
                   <p className={`text-xl font-bold ${todayMeta.color}`}>{todayMeta.label}</p>
                   <p className="text-stone-400 text-sm mt-0.5">Marked for today</p>
@@ -208,9 +189,7 @@ export default function DailyAttendance() {
             /* Brief success flash */
             <div className="bg-teal-50 rounded-2xl p-6 text-center border border-teal-200">
               <span className="text-4xl">✅</span>
-              <p className="font-bold text-teal-700 text-lg mt-2">
-                {STATUS_META[justMarked]?.label} saved!
-              </p>
+              <p className="font-bold text-teal-700 text-lg mt-2">{STATUS_META[justMarked]?.label} saved!</p>
               <p className="text-teal-500 text-sm mt-0.5">Attendance recorded for today</p>
             </div>
 
@@ -274,8 +253,9 @@ export default function DailyAttendance() {
           {showPastDays && (
             <div className="border-t border-stone-50">
               {pastDays.map((day, idx) => {
-                const meta = day.status ? STATUS_META[day.status] : null
+                const meta          = day.status && day.status !== 'not_scheduled' ? STATUS_META[day.status] : null
                 const isEditingThis = editingDate === day.date
+                const isNotScheduled = day.status === 'not_scheduled'
 
                 return (
                   <div key={day.date}>
@@ -283,11 +263,17 @@ export default function DailyAttendance() {
                     <div className="px-4 py-3">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="font-semibold text-stone-700 text-sm">{formatShortDate(day.date)}</p>
+                          <p className={`font-semibold text-sm ${isNotScheduled ? 'text-stone-400' : 'text-stone-700'}`}>
+                            {formatShortDate(day.date)}
+                          </p>
                           <p className="text-xs text-stone-400">{day.dayName}</p>
                         </div>
                         <div className="flex items-center gap-2">
-                          {meta ? (
+                          {isNotScheduled ? (
+                            <span className="text-xs font-semibold text-stone-300 px-3 py-1 rounded-full bg-stone-50 border border-stone-100">
+                              Not scheduled
+                            </span>
+                          ) : meta ? (
                             <>
                               <span className={`text-xs font-bold px-3 py-1 rounded-full ${meta.bg} ${meta.color}`}>
                                 {meta.label}{day.isAutoWeeklyOff ? ' (auto)' : ''}

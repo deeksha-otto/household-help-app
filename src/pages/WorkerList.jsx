@@ -4,6 +4,16 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext.jsx'
 import { roleLabel, roleIcon, STATUS_META, todayStr } from '../utils/salary.js'
 
+function scheduleLabel(worker) {
+  const freq = worker.attendance_frequency || 'daily'
+  if (freq === 'specific_days') {
+    const days = (worker.scheduled_days || []).map(d => d.slice(0, 3)).join(', ')
+    return days || 'Specific days'
+  }
+  if (freq === 'alternate_days') return 'Every other day'
+  return `Off: ${worker.weekly_off_day || 'Sunday'}`
+}
+
 const ROLE_BG = {
   cook:       'bg-orange-100',
   maid:       'bg-violet-100',
@@ -148,7 +158,7 @@ export default function WorkerList() {
                   <p className="font-bold text-stone-800 text-base truncate">{worker.name}</p>
                   <p className="text-stone-400 text-sm mt-0.5">{roleLabel(worker)}</p>
                   <p className="text-stone-300 text-xs mt-0.5">
-                    Off: {worker.weekly_off_day} · ₹{Number(worker.monthly_salary).toLocaleString('en-IN')}/mo
+                    {scheduleLabel(worker)} · ₹{Number(worker.monthly_salary).toLocaleString('en-IN')}/mo
                   </p>
                 </div>
 

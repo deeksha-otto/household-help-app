@@ -40,7 +40,7 @@ export default function MonthlySummary() {
       supabase.from('payments').select('*').eq('worker_id', worker.id).gte('date', p.periodStart).lte('date', p.periodEnd),
     ])
 
-    const days = buildCalendarDays(p.periodStart, p.periodEnd, worker.weekly_off_day, attRecords || [])
+    const days = buildCalendarDays(p.periodStart, p.periodEnd, worker, attRecords || [])
     const s = computeSummary(worker, days, payRecords || [])
     setPayments(payRecords || [])
     setSummary(s)
@@ -75,7 +75,7 @@ export default function MonthlySummary() {
     return <div className="flex items-center justify-center py-24 text-stone-400">Loading…</div>
   }
 
-  const { counts, perDayRate, deductionTotal, totalAdvances, grossSalary, finalAmountDue, extraPaidLeaves, paidLeavesUsed } = summary
+  const { counts, perDayRate, deductionTotal, totalAdvances, grossSalary, finalAmountDue, extraPaidLeaves, paidLeavesUsed, expectedWorkingDays } = summary
 
   // Derive per-category deductions for the breakdown display
   const absentDeduction     = counts.absent   * perDayRate
@@ -160,7 +160,7 @@ export default function MonthlySummary() {
           </div>
           <div className="flex justify-between items-center">
             <span className="text-xs text-stone-400">Per-day rate</span>
-            <span className="text-xs text-stone-400">{formatCurrency(perDayRate)} / day</span>
+            <span className="text-xs text-stone-400">{formatCurrency(perDayRate)}/day · {expectedWorkingDays} scheduled days</span>
           </div>
 
           {/* Deductions — only show non-zero lines */}
