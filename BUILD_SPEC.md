@@ -77,7 +77,69 @@ worker's salary math.
 
 **Final amount due** = `monthly_salary - deduction_total - total_advances`
 
-## Screens
+## Employee login + approval workflow (simplified, demo scope)
+
+Two logins now exist: **Employer** (existing) and **Employee/Worker**
+(new). This is a simplified version — flagged known limitations below,
+acceptable for a class demo, not production-ready as-is.
+
+**Login/Signup — Employer vs Employee toggle:**
+- The single login/signup screen now has a toggle at the top: **"I'm an
+  Employer" / "I'm a Worker"** — this determines what happens on
+  Sign Up, and which interface the user is routed into
+- **Employer signup**: creates a row in the `employers` table (as before)
+- **Employee/Worker signup**: does NOT create an employer row. Instead, on
+  signup, check if any row in `workers` has a matching `worker_email` with
+  `worker_auth_id` still null:
+  - If found → link it (`worker_auth_id = auth.uid()`), sign-up succeeds,
+    route to the Employee interface
+  - If no match found → show a clear message: "No worker profile found
+    with this email yet — ask your employer to add you as a worker first,
+    then try signing up again."
+- **Sign In** (for returning users, either role): the toggle determines
+  which interface to route into after successful auth — Employer toggle
+  checks `employers` table for a matching row, Employee toggle checks
+  `workers` table for a matching `worker_auth_id`
+- This keeps the auth logic simple for the demo timeline — no need to
+  auto-detect role from a single unified query
+
+
+- When adding/editing a worker, the employer now also enters the worker's
+  email (`worker_email` on the workers table)
+- The worker signs up separately (same email/password auth used
+  elsewhere) using that same email
+- On first login, the app checks if any worker row has a matching
+  `worker_email` with `worker_auth_id` still null — if so, link it
+  (`worker_auth_id = auth.uid()`)
+- Known limitation: this is a simple email-match, not a secure invite-code
+  flow — fine for a controlled demo, would need hardening for real use
+
+**Attendance submission + approval:**
+- A worker, once logged in, sees only their own daily attendance screen —
+  same 4 buttons (Present/Absent/Half-day/Paid Leave), but submitting sets
+  `submitted_by = 'employee'` and `approval_status = 'pending'`
+- The employer sees a new "Pending Approvals" view — a simple list of
+  employee-submitted entries awaiting approval, each with Approve/Reject
+  buttons
+- Only entries with `approval_status = 'approved'` count toward the
+  salary calculation (see Core calculation logic above) — pending or
+  rejected entries are excluded until resolved
+- Entries the employer marks directly (as before) stay auto-approved,
+  no separate approval step needed for those
+
+**Leave impact preview (employee side):**
+- Before an employee submits "Paid Leave" for a day, show a small preview:
+  "Taking this leave will bring your leaves used to X/Y this month" and,
+  if it would exceed the allowed count, "This will be treated as unpaid —
+  estimated deduction: ₹Z" — using the same per-day-rate logic already
+  defined above, just surfaced as a before-the-fact estimate rather than
+  only shown after the fact in the employer's monthly summary
+
+**Employee's own monthly summary:**
+- Read-only version of the existing summary screen, scoped to their own
+  data only (via the RLS policies in `migration_002_employee_login.sql`)
+
+
 
 1. **Worker list** (home screen) — all active workers, grouped or filterable
    by role. Big "+" to add a worker. Tapping a worker opens their daily

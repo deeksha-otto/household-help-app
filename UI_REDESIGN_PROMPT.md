@@ -11,10 +11,25 @@ patterns. Apply these directly:
   physically pressable), not a flat color with a soft drop-shadow. On tap,
   the button visually "presses down" (shifts down a few px, shadow
   shrinks) for tactile feedback.
-- **Bold, saturated flat colors** — not muted/pastel. Primary green
-  (#58CC02-style vivid green), with other flat saturated colors for
-  different states (blue, red, gold/yellow) — no gradients, no corporate
-  navy.
+- **COLOR SCHEME OVERRIDE — use District (by Zomato) as the color
+  reference instead of Duolingo's green.** District uses a deep, rich
+  purple as its signature color (distinct from typical app blues/greens),
+  paired with a bold, slightly editorial typographic identity — more
+  premium and modern than Duolingo's playful flat green, while still bold
+  and distinctive rather than corporate. Concretely:
+  - Primary brand/action color: a deep, rich purple/violet (e.g. in the
+    range of #4A0E4E to #6D2E75 — velvety, not pastel/lavender)
+  - Background: a soft off-white or very light neutral (not stark white,
+    not dark mode) so the purple pops as the clear accent
+  - Keep the chunky 3D-press button style from Duolingo (bottom shadow
+    border, press-down animation), just recolor it into this purple family
+    instead of green
+  - Secondary accent colors (for Absent=red, Half-day=amber, Paid
+    Leave=blue) stay as before — only the PRIMARY brand/action color
+    changes from green to this deep purple
+  - Typography can be slightly more modern/editorial rather than
+    ultra-rounded-cartoonish — still bold and confident, but leaning
+    toward a more grown-up, premium feel to match District's tone
 - **Thick, rounded sans-serif font**, bigger and bolder than a typical
   app — headings especially should feel chunky and confident, not thin/light
   weight.
@@ -67,10 +82,12 @@ only, not a feature or logic change.
   brand color, with a soft off-white/cream background (not stark white).
   Reserve red strictly for "Absent" and negative amounts, green strictly for
   "Present" and positive/settled states — don't overload these colors
-  elsewhere. IMPORTANT: since the Duolingo direction above sets GREEN as the
-  primary brand/action color, and Present is also green, do NOT use plain
-  green for "Paid Leave" — use blue or purple for Paid Leave instead so it's
-  visually distinct from both the primary buttons and the Present status.
+  elsewhere. IMPORTANT: the Duolingo direction above overrides the PRIMARY
+  brand/action color to deep purple (District-inspired), NOT green — so
+  green is only used for "Present" status, never for primary buttons.
+  Since Present is green, do NOT use green or purple for "Paid Leave" —
+  use blue for Paid Leave so all four statuses plus the brand color stay
+  visually distinct.
 - Typography: large, legible sans-serif, bigger font sizes than a typical
   web app default — this needs to be readable at a glance, possibly by
   someone who isn't highly tech-savvy or may be older
@@ -81,9 +98,9 @@ only, not a feature or logic change.
 
 ### 0. Splash screen (shows first, before login)
 - App name: **Sahayak**
-- Full-screen, brand primary color (the green from the Duolingo direction)
-  as background, or a light background with the logo as the hero element —
-  pick whichever reads cleaner
+- Full-screen, brand primary color (the deep purple from the District
+  color override above) as background, or a light background with the
+  logo as the hero element — pick whichever reads cleaner
 - Center: a simple logo mark + "Sahayak" in the bold rounded typography
   established above. Since there's no existing logo asset, generate a
   simple icon-based mark (e.g. a friendly icon — a checkmark, a calendar
@@ -98,6 +115,16 @@ only, not a feature or logic change.
   rest of the app
 
 ### 1. Login / Signup
+- At the top: a toggle/segmented control — **"Employer" / "Worker"** —
+  styled as two chunky pill-shaped tabs (Duolingo/District tone), clearly
+  showing which one is selected (filled with the primary purple) vs
+  unselected (outlined/greyed)
+- Below the toggle, the same Sign In / Sign Up form either way — only the
+  behavior on submit differs (see `BUILD_SPEC.md` for the linking logic)
+- If a Worker signs up with an email that has no matching worker profile,
+  show a friendly, clear inline error (not a generic auth error) — e.g.
+  "No worker profile found with this email — ask your employer to add you
+  first."
 - Simple centered card, generous padding, clear single primary button
 - Toggle between Sign In / Sign Up should feel like one smooth motion, not
   a jarring page swap
@@ -135,7 +162,7 @@ only, not a feature or logic change.
   - Present → green
   - Absent → red
   - Half-day → amber/orange
-  - Paid Leave → blue or teal
+  - Paid Leave → blue
 - On tap: immediate visual confirmation (a checkmark animation, brief color
   fill, or similar) — this needs to feel satisfying and instant, like
   completing a Duolingo lesson tap
