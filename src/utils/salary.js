@@ -28,7 +28,8 @@ export function getWeekdayName(dateStr) {
 }
 
 export function todayStr() {
-  return new Date().toISOString().split('T')[0]
+  const d = new Date()
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
 
 // Returns whether a given date is a scheduled working day for the worker.
@@ -90,7 +91,8 @@ export async function getCurrentPeriod(workerId) {
   if (data && data.length > 0) {
     const lastEnd = new Date(data[0].period_end + 'T00:00:00')
     lastEnd.setDate(lastEnd.getDate() + 1)
-    return { periodStart: lastEnd.toISOString().split('T')[0], periodEnd: today }
+    const y = lastEnd.getFullYear(), mo = String(lastEnd.getMonth() + 1).padStart(2, '0'), d = String(lastEnd.getDate()).padStart(2, '0')
+    return { periodStart: `${y}-${mo}-${d}`, periodEnd: today }
   }
   const now   = new Date()
   const start = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`
@@ -109,7 +111,8 @@ export function buildCalendarDays(periodStart, periodEnd, worker, attendanceReco
   const end     = new Date(periodEnd   + 'T00:00:00')
 
   while (current <= end) {
-    const dateStr      = current.toISOString().split('T')[0]
+    const y = current.getFullYear(), mo = String(current.getMonth() + 1).padStart(2, '0'), d = String(current.getDate()).padStart(2, '0')
+    const dateStr      = `${y}-${mo}-${d}`
     const dayName      = WEEKDAYS[current.getDay()]
     const scheduled    = isDateScheduled(dateStr, worker)
     const isWeeklyOff  = freq === 'daily' && dayName === (worker.weekly_off_day || 'Sunday')
