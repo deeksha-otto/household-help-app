@@ -24,7 +24,7 @@ export function formatShortDate(dateStr) {
 const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 
 export function getWeekdayName(dateStr) {
-  return WEEKDAYS[new Date(dateStr + 'T00:00:00').getDay()]
+  return WEEKDAYS[new Date(dateStr + 'T00:00:00Z').getUTCDay()]
 }
 
 export function todayStr() {
