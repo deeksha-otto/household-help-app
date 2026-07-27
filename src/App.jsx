@@ -1,5 +1,7 @@
+import { useState } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from './contexts/AuthContext.jsx'
+import Splash from './pages/Splash.jsx'
 import Login from './pages/Login.jsx'
 import WorkerList from './pages/WorkerList.jsx'
 import AddEditWorker from './pages/AddEditWorker.jsx'
@@ -22,8 +24,12 @@ function RequireGuest({ children }) {
 }
 
 export default function App() {
+  const [splash, setSplash] = useState(true)
+
   return (
-    <BrowserRouter>
+    <>
+      {splash && <Splash onDone={() => setSplash(false)} />}
+      <BrowserRouter>
       <Routes>
         <Route path="/login" element={<RequireGuest><Login /></RequireGuest>} />
 
@@ -41,6 +47,7 @@ export default function App() {
 
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-    </BrowserRouter>
+      </BrowserRouter>
+    </>
   )
 }

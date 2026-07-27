@@ -55,11 +55,17 @@ export default function Login() {
 
         {/* Brand mark */}
         <div className="text-center mb-8">
-          <div className="w-20 h-20 bg-teal-600 rounded-3xl flex items-center justify-center text-4xl mx-auto mb-4 shadow-md">
-            🏠
+          <div className="w-20 h-20 bg-white rounded-3xl flex items-center justify-center mx-auto mb-4 shadow-md" style={{ background: '#58CC02' }}>
+            <svg viewBox="0 0 48 48" className="w-12 h-12" xmlns="http://www.w3.org/2000/svg">
+              <rect x="9" y="23" width="30" height="21" rx="3" fill="white" opacity="0.9" />
+              <path d="M4 25 L24 7 L44 25 Z" fill="white" opacity="0.9" />
+              <rect x="18" y="31" width="12" height="13" rx="2" fill="#58CC02" />
+              <circle cx="36" cy="14" r="9" fill="white" />
+              <path d="M31 14 L35 18 L42 10" stroke="#58CC02" strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
           </div>
-          <h1 className="text-3xl font-bold text-stone-800 tracking-tight">Household Help</h1>
-          <p className="text-stone-500 mt-1 text-base">Attendance & Salary Tracker</p>
+          <h1 className="text-3xl font-bold text-stone-800 tracking-tight">Sahayak</h1>
+          <p className="text-stone-500 mt-1 text-base">Attendance &amp; salary, sorted</p>
         </div>
 
         {/* Card */}
